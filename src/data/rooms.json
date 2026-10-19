@@ -1,0 +1,58 @@
+{
+  "tiers": [
+    { "id": "basement", "name": "Подвал", "theme": "выживание" },
+    { "id": "t1", "name": "Первый ярус", "theme": "опора" },
+    { "id": "t2", "name": "Второй ярус", "theme": "связь" },
+    { "id": "t3", "name": "Третий ярус", "theme": "голос" },
+    { "id": "roof", "name": "Крыша", "theme": "смысл" }
+  ],
+  "rooms": [
+    {
+      "id": "myroom",
+      "name": "Моя комната",
+      "feeling": "дом",
+      "tier": 0,
+      "x": 0,
+      "w": 520,
+      "furnishable": true,
+      "palette": { "wall": "#3b2f29", "wallLit": "#4d3a2c", "line": "#a99880", "lineLit": "#e0c9a0", "floor": "#2a201b", "floorLit": "#3a2a1e", "accent": "#7a5a3c", "accentLit": "#d9a05b" },
+      "fixtures": [
+        { "id": "door_out", "type": "door_out", "x": 8, "radius": 42 },
+        { "id": "wardrobe", "type": "wardrobe", "x": 100, "radius": 38 },
+        { "id": "lamp", "type": "lamp", "x": 250, "radius": 60 },
+        { "id": "notebook", "type": "notebook", "x": 345, "radius": 36 },
+        { "id": "window", "type": "window", "x": 440, "radius": 50 }
+      ]
+    },
+    {
+      "id": "boiler",
+      "name": "Котельная",
+      "feeling": "давление",
+      "tier": 0,
+      "x": 520,
+      "w": 520,
+      "furnishable": false,
+      "palette": { "wall": "#272e33", "wallLit": "#4a3a2c", "line": "#8d9aa0", "lineLit": "#e3b784", "floor": "#1d2226", "floorLit": "#33271d", "accent": "#7a4a35", "accentLit": "#cf7a3f" },
+      "fixtures": [
+        { "id": "bolt_pickup", "type": "pickup", "x": 70, "radius": 34, "item": "bolt", "label": "Ржавый засов" },
+        { "id": "pipe", "type": "pipe", "x": 190, "radius": 60 },
+        { "id": "niche", "type": "niche", "x": 395, "radius": 40 }
+      ]
+    },
+    {
+      "id": "pantry",
+      "name": "Кладовая",
+      "feeling": "тишина",
+      "tier": 0,
+      "x": 1040,
+      "w": 520,
+      "furnishable": false,
+      "lockedBy": "boiler",
+      "palette": { "wall": "#2c2a30", "wallLit": "#4b4034", "line": "#95909b", "lineLit": "#e8d2a8", "floor": "#201e24", "floorLit": "#372b22", "accent": "#5d5566", "accentLit": "#d6b17a" },
+      "fixtures": [
+        { "id": "box", "type": "box", "x": 200, "radius": 44 },
+        { "id": "pantry_window", "type": "pantry_window", "x": 370, "radius": 50 }
+      ]
+    }
+  ]
+}
