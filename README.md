@@ -6,7 +6,7 @@
 
 ```bash
 npm install
-npm run dev      # http://localhost:5173, пересборка на лету
+npm run dev      # http://localhost:5173, пересборка на лету (другой порт: PORT=4321 npm run dev)
 npm run build    # typecheck + минифицированная сборка в dist/ (статика, можно выложить куда угодно)
 ```
 

@@ -25,7 +25,7 @@ const options = {
 if (serve) {
   const ctx = await esbuild.context(options);
   await ctx.watch();
-  const { port } = await ctx.serve({ servedir: 'dist', port: 5173, host: '0.0.0.0' });
+  const { port } = await ctx.serve({ servedir: 'dist', port: Number(process.env.PORT) || 5173, host: '0.0.0.0' });
   console.log(`dev: http://localhost:${port}  (index.html/style.css копируются при старте)`);
 } else {
   await esbuild.build(options);
