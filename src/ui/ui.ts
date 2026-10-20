@@ -102,16 +102,6 @@ export class UI {
     nEl.style.opacity = n > 0.02 ? '1' : '0';
     (nEl.querySelector('i') as HTMLElement).style.width = `${Math.round(n * 52)}px`;
 
-    // откуда он: направление слышно, пока не вошёл, и после — в какой он комнате
-    const tp = rt.tenant, tcEl = $('chip-tenant');
-    const loud = tp.phase === 'steps' || tp.phase === 'knock';
-    const inHouse = tp.phase === 'patrol' || tp.phase === 'leave' || tp.phase === 'enter';
-    tcEl.hidden = !(loud || (inHouse && tp.x >= 0)) || !!rt.modal;
-    if (!tcEl.hidden) {
-      const where = loud ? { door: 'у двери', vent: 'у решётки', window: 'у окна' }[tp.entrance] : `в «${roomAt(tp.x).name.toLowerCase()}»`;
-      tcEl.textContent = `он ${where}`;
-    }
-
     // прибранность комнаты
     const td = tidyOf(s, rt.roomId);
     const tc = $('chip-tidy');

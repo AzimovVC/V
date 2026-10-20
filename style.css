@@ -113,7 +113,6 @@ button.small:active { background: rgba(60,40,28,.9); }
 .mat i { font-style: normal; color: var(--warm); margin-left: 3px; }
 .item button small { color: var(--muted); font-size: 11px; }
 .item button:disabled { opacity: .4; cursor: default; }
-#chip-tenant { color: #d9a8a0 !important; }
 #chip-tidy { color: #b9c9a8 !important; }
 .pipegrid { position: relative; display: grid; gap: 4px; margin: 6px 22px 12px; }
 .pipegrid .pin, .pipegrid .pout { position: absolute; font-size: 22px; line-height: 1; transform: translateY(-50%); pointer-events: none; }
