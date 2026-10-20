@@ -7,7 +7,8 @@
   "scripts": {
     "dev": "node scripts/build.mjs --serve",
     "build": "tsc --noEmit && node scripts/build.mjs --prod",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "build:single": "node scripts/single.mjs"
   },
   "devDependencies": {
     "esbuild": "0.25.5",
