@@ -143,6 +143,7 @@ export const balance = {
     energyLossFrac: 0.4, // теряешь долю огонька
     energyFloor: 15, // …но не ниже
     windowCrackMax: 3,
+    ventSeal: { board: 2, scrap: 1 } as Record<string, number>, // материалы на решётку в Котельной
     windowRepair: { board: 1, rag: 1 } as Record<string, number>, // материалы на заделку окна
     restPerCrack: 0.15, // выбитое окно снижает отдых у лампы
     breakItemOnCaught: true, // ломается случайный предмет (чинится материалами)

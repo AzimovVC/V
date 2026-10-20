@@ -153,6 +153,12 @@
           "radius": 52
         },
         {
+          "id": "vent",
+          "type": "vent",
+          "x": 345,
+          "radius": 26
+        },
+        {
           "id": "niche",
           "type": "niche",
           "x": 400,

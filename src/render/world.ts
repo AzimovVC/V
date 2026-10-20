@@ -4,6 +4,7 @@ import { leakLevel } from '../core/state';
 import type { Game } from '../core/game';
 import type { RoomDef, WeatherId } from '../core/types';
 import { drawProps } from './props';
+import { drawDecay } from './decay';
 import { blob, fillPoly, fillRect, hatch, lerpColor, line, polyline, rect } from './sketch';
 
 export interface Env {
@@ -290,7 +291,7 @@ function drawMyRoom(ctx: CanvasRenderingContext2D, env: Env, room: RoomDef): voi
 
 function tenantAtDoor(g: Game): boolean {
   const t = g.rt.tenant;
-  return (t.phase === 'enter' || t.phase === 'patrol' || t.phase === 'leave') && t.x > -40 && t.x < 60;
+  return t.entrance === 'door' && (t.phase === 'enter' || t.phase === 'patrol' || t.phase === 'leave') && t.x > -40 && t.x < 60;
 }
 
 function drawDoorOut(ctx: CanvasRenderingContext2D, env: Env, room: RoomDef, open: boolean): void {
@@ -465,6 +466,25 @@ function drawBoiler(ctx: CanvasRenderingContext2D, env: Env, room: RoomDef): voi
     for (let i = 0; i < 4; i++) {
       const ph = (t * 0.25 + i * 0.25) % 1;
       blob(ctx, bx + 46 + Math.sin(ph * 6 + i) * 8, 38 - ph * 34, 6 + ph * 10, 5 + ph * 8, 240 + i, 0.8);
+    }
+  }
+
+  // вентиляционная решётка: сюда он скребётся
+  {
+    const vx = 520 + 345, vy = 96, sealed = s.flags['vent_sealed'];
+    const ten = g.rt.tenant, active = ten.entrance === 'vent' && (ten.phase === 'steps' || ten.phase === 'knock');
+    ctx.fillStyle = '#050505'; fillRect(ctx, vx - 22, vy, 44, 36, 260, 0.5);
+    ctx.strokeStyle = ink; ctx.lineWidth = 2;
+    rect(ctx, vx - 22, vy, 44, 36, 261, 0.6);
+    for (let i = 1; i < 5; i++) line(ctx, vx - 20, vy + i * 7, vx + 20, vy + i * 7, 262 + i, 0.5, 1);
+    if (active) {
+      ctx.fillStyle = `rgba(235,225,205,${0.4 + 0.3 * Math.sin(env.t * 9)})`;
+      ctx.fillRect(vx - 8, vy + 16, 2.4, 1.8); ctx.fillRect(vx + 5, vy + 16, 2.4, 1.8);
+    }
+    if (sealed) {
+      ctx.fillStyle = '#4a3a2a'; ctx.strokeStyle = '#8a7660'; ctx.lineWidth = 1.5;
+      fillRect(ctx, vx - 28, vy + 4, 56, 8, 270, 0.6); rect(ctx, vx - 28, vy + 4, 56, 8, 271, 0.6);
+      fillRect(ctx, vx - 26, vy + 22, 52, 8, 272, 0.6); rect(ctx, vx - 26, vy + 22, 52, 8, 273, 0.6);
     }
   }
 
@@ -657,10 +677,16 @@ function drawPlayer(ctx: CanvasRenderingContext2D, env: Env): void {
   ctx.restore();
 }
 
+/** Из вентиляции и окна жилец слышен, но не виден, пока не вошёл. */
+function unseenAtEntrance(g: Game): boolean {
+  const t = g.rt.tenant;
+  return t.entrance !== 'door' && (t.phase === 'steps' || t.phase === 'knock');
+}
+
 function drawTenant(ctx: CanvasRenderingContext2D, env: Env): void {
   const { g, t } = env;
   const ten = g.rt.tenant;
-  if (ten.phase === 'away') return;
+  if (ten.phase === 'away' || unseenAtEntrance(g)) return;
   const x = ten.x;
   const walking = ten.phase !== 'knock' && !(ten.phase === 'patrol' && ten.arrived && ten.pause > 0);
   const sway = walking ? Math.sin(t * 6) * 1.5 : Math.sin(t * 1.2) * 0.5;
@@ -692,7 +718,7 @@ function drawTenant(ctx: CanvasRenderingContext2D, env: Env): void {
 export function drawEyes(ctx: CanvasRenderingContext2D, env: Env): void {
   const { g, t } = env;
   const ten = g.rt.tenant;
-  if (ten.phase !== 'away') {
+  if (ten.phase !== 'away' && !unseenAtEntrance(g)) {
     const face = ten.phase === 'leave' ? -1 : 1;
     const ex = ten.x + face * 6, ey = FLOOR_Y - 71 + Math.sin(t * 6) * 1.5;
     const a = ten.phase === 'steps' ? 0.35 : 0.8;
@@ -722,6 +748,7 @@ export function drawWorld(ctx: CanvasRenderingContext2D, env: Env): void {
     if (room.id === 'myroom') drawMyRoom(ctx, env, room);
     else if (room.id === 'boiler') drawBoiler(ctx, env, room);
     else if (room.id === 'pantry') drawPantry(ctx, env, room);
+    drawDecay(ctx, env, room);
     drawProps(ctx, env, room);
   }
   drawWalls(ctx, env);

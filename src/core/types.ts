@@ -47,13 +47,13 @@ export interface NpcDef { id: string; name: string; room: string; talks: NpcTalk
 
 export type TileKind = 'straight' | 'elbow';
 export interface PipeTile { t: TileKind; r: number; broken?: boolean }
-export interface PipeDef { cols: number; rows: number; inRow: number; outRow: number; tiles: PipeTile[][] }
+export interface PipeDef { cols: number; rows: number; inRow: number; outRow: number; solution: [number, number, number][]; tiles: PipeTile[][] }
 
 export interface TenantDef {
   id: string;
-  route: string[];
   stops: Record<string, number>; // roomId → абсолютный x остановки
-  lines: { steps: string[]; knock: string[]; stop: string[]; caught: string; repelled: string };
+  entrances: Array<{ id: 'door' | 'vent' | 'window'; x: number; kind: 'knock' | 'scratch' | 'tap'; weight: number; route: string[]; warn: string }>;
+  lines: { steps: string[]; knock: string[]; scratch: string[]; tap: string[]; stop: string[]; caught: string; repelled: string };
 }
 
 export type WeatherId = 'quiet' | 'drizzle' | 'storm';

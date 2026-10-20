@@ -1,5 +1,5 @@
 import { balance } from '../config/balance';
-import { data, roomById, thingById } from '../data';
+import { data, roomAt, roomById, thingById } from '../data';
 import { totalDebt, weatherId, matCount, tidyOf } from '../core/state';
 import { slotCount, slotsFree, toggleEquip, repairItem } from '../systems/furnish';
 import { craft, costText, ownsAlready } from '../systems/craft';
@@ -101,6 +101,16 @@ export class UI {
     const nEl = $('notice');
     nEl.style.opacity = n > 0.02 ? '1' : '0';
     (nEl.querySelector('i') as HTMLElement).style.width = `${Math.round(n * 52)}px`;
+
+    // откуда он: направление слышно, пока не вошёл, и после — в какой он комнате
+    const tp = rt.tenant, tcEl = $('chip-tenant');
+    const loud = tp.phase === 'steps' || tp.phase === 'knock';
+    const inHouse = tp.phase === 'patrol' || tp.phase === 'leave' || tp.phase === 'enter';
+    tcEl.hidden = !(loud || (inHouse && tp.x >= 0)) || !!rt.modal;
+    if (!tcEl.hidden) {
+      const where = loud ? { door: 'у двери', vent: 'у решётки', window: 'у окна' }[tp.entrance] : `в «${roomAt(tp.x).name.toLowerCase()}»`;
+      tcEl.textContent = `он ${where}`;
+    }
 
     // прибранность комнаты
     const td = tidyOf(s, rt.roomId);
@@ -299,11 +309,18 @@ export class UI {
       const card = this.open(`<h2>Труба</h2>
         <p class="muted">${msg || data.texts.pipe.puzzle}</p>
         <div class="pipegrid" style="grid-template-columns:repeat(${P.cols},1fr)">
-          <span class="pin" style="grid-row:${P.inRow + 1}">▶</span><span class="pout" style="grid-row:${P.outRow + 1}">▶</span>${cells}
+          <span class="pin" style="top:${(P.inRow + .5) / P.rows * 100}%">▶</span><span class="pout" style="top:${(P.outRow + .5) / P.rows * 100}%">▶</span>${cells}
         </div>
         <p class="muted">Патрубков: ${matCount(s, 'pipepart')}. Треснувшую плитку нужно заменить.</p>
-        <div class="row"><button class="btn" id="p-ok">Отойти</button></div>`);
+        <div class="row"><button class="btn" id="p-hint">Подсказка</button><button class="btn" id="p-ok">Отойти</button></div>`);
       this.escCb = () => this.closeModal();
+      (card.querySelector('#p-hint') as HTMLButtonElement).onclick = () => {
+        for (const [r, c, rot] of P.solution) {
+          const i = r * P.cols + c, t = P.tiles[r][c];
+          const wrongRot = t.t === 'straight' ? s.pipe.rot[i] % 2 !== rot % 2 : s.pipe.rot[i] !== rot;
+          if ((t.broken && !s.pipe.repl[i]) || wrongRot) { card.querySelector(`.tile[data-i="${i}"]`)?.classList.add('hint'); return; }
+        }
+      };
       (card.querySelector('#p-ok') as HTMLButtonElement).onclick = () => this.closeModal();
       card.querySelectorAll<HTMLButtonElement>('.tile').forEach((b) => {
         b.onclick = () => {

@@ -72,7 +72,7 @@ export class AudioEngine {
     const on = g.bus.on.bind(g.bus);
     this.offs.push(
       on('ui:click', () => this.blip(520, 0.05)),
-      on('tenant:knock', ({ i }) => this.knock(i)),
+      on('tenant:knock', ({ i, kind, x }) => (kind === 'scratch' ? this.scratch(i, x) : kind === 'tap' ? this.glassTap(i, x) : this.knock(i))),
       on('tenant:steps', ({ x }) => this.step(x)),
       on('tenant:voice', () => this.mutter()),
       on('tenant:enter', () => this.thud(70, 0.5, 0.25, -0.6)),
@@ -283,6 +283,29 @@ export class AudioEngine {
     this.burst(0.07, v, 'lowpass', 1100, { pan: -0.7 });
     this.tone(150, 'sine', 0.18, v * 0.9, { glide: 70, pan: -0.7 });
     this.burst(0.05, v * 0.5, 'bandpass', 700, { pan: -0.7, at: 0.11, q: 1.5 });
+  }
+
+  private panOf(x: number): number {
+    const g = this.game;
+    return g ? Math.max(-1, Math.min(1, (x - g.state.player.x) / 420)) : 0;
+  }
+
+  /** Скрежет по металлу решётки: шипящий шум с дрожащим фильтром. */
+  private scratch(i: number, x: number): void {
+    const v = (0.22 + 0.12 * i) / (1 + Math.abs(x - (this.game?.state.player.x ?? 0)) / 300);
+    const pan = this.panOf(x);
+    this.burst(0.28, v, 'highpass', 2600, { pan });
+    this.burst(0.2, v * 0.8, 'bandpass', 3800, { pan, at: 0.22, q: 3 });
+    this.tone(95, 'sawtooth', 0.3, v * 0.25, { glide: 70, pan });
+  }
+
+  /** Сухой стук ногтем по стеклу. */
+  private glassTap(i: number, x: number): void {
+    const v = (0.3 + 0.15 * i) / (1 + Math.abs(x - (this.game?.state.player.x ?? 0)) / 300);
+    const pan = this.panOf(x);
+    this.tone(1900, 'sine', 0.05, v * 0.6, { glide: 1500, pan });
+    this.burst(0.03, v * 0.5, 'highpass', 3000, { pan });
+    this.tone(1900, 'sine', 0.05, v * 0.4, { glide: 1500, pan, at: 0.16 });
   }
 
   private step(x: number): void {

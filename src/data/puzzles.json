@@ -4,6 +4,7 @@
     "rows": 3,
     "inRow": 0,
     "outRow": 2,
+    "solution": [[0,0,0],[0,1,2],[1,1,0],[1,2,2],[2,2,0],[2,3,0]],
     "tiles": [
       [ { "t": "straight", "r": 0 }, { "t": "elbow", "r": 0 }, { "t": "elbow", "r": 1 }, { "t": "straight", "r": 0 } ],
       [ { "t": "elbow", "r": 2 }, { "t": "elbow", "r": 1, "broken": true }, { "t": "elbow", "r": 3 }, { "t": "elbow", "r": 3 } ],

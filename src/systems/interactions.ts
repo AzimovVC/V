@@ -44,6 +44,19 @@ function spend(g: Game, c: number): boolean {
 }
 const matsText = (m: Record<string, number>): string => Object.keys(m).map((k) => `${thingById(k).name} ×${m[k]}`).join(', ');
 
+/** «Сказать „хватит“» — доступно у того входа, в который сейчас стучат. */
+function boundaryAction(g: Game, entrance: string): Action | null {
+  const t = g.rt.tenant;
+  if (t.phase !== 'knock' || t.entrance !== entrance || !g.state.abilities.includes('boundary')) return null;
+  return {
+    id: 'boundary', label: 'Сказать «хватит»', icon: '✋',
+    run: () => {
+      if (g.state.energy < balance.tenant.boundaryCost) { g.toast('Не хватает огонька для этих слов.'); return; }
+      repelTenant(g);
+    },
+  };
+}
+
 function fixtureAction(g: Game, room: RoomDef, fx: FixtureDef): Action | null {
   const s = g.state, T = data.texts;
   const done = s.done.includes(fx.id);
@@ -66,16 +79,8 @@ function fixtureAction(g: Game, room: RoomDef, fx: FixtureDef): Action | null {
       };
 
     case 'door_out': {
-      const t = g.rt.tenant;
-      if (t.phase === 'knock' && s.abilities.includes('boundary')) {
-        return {
-          id: 'boundary', label: 'Сказать «хватит»', icon: '✋',
-          run: () => {
-            if (s.energy < balance.tenant.boundaryCost) { g.toast('Не хватает огонька для этих слов.'); return; }
-            repelTenant(g);
-          },
-        };
-      }
+      const b = boundaryAction(g, 'door');
+      if (b) return b;
       if (s.flags['pantry_box']) {
         return {
           id: 'stairs', label: 'Подняться', icon: '⇧',
@@ -89,7 +94,26 @@ function fixtureAction(g: Game, room: RoomDef, fx: FixtureDef): Action | null {
       return null;
     }
 
+    case 'vent': {
+      const b = boundaryAction(g, 'vent');
+      if (b) return b;
+      if (s.flags['vent_sealed']) return { id: 'ventlook', label: 'Осмотреть решётку', icon: '▤', run: () => g.toast(T.vent.sealed) };
+      const cost = balance.penalty.ventSeal;
+      return {
+        id: 'ventseal', label: 'Заколотить решётку', icon: '▤',
+        run: () => {
+          if (!canPay(s, cost)) { g.toast(`Нужно: ${matsText(cost).toLowerCase()}.`); return; }
+          pay(s, cost); s.flags['vent_sealed'] = true;
+          g.bus.emit('window:fix', {});
+          g.toast(T.vent.done);
+          g.save();
+        },
+      };
+    }
+
     case 'window': {
+      const bw = boundaryAction(g, 'window');
+      if (bw) return bw;
       if (s.windowCracks > 0) {
         const cost = balance.penalty.windowRepair;
         return {

@@ -27,7 +27,7 @@ export interface GameEvents {
   'player:breath': Record<string, never>;
   'player:blackout': Record<string, never>;
   'tenant:steps': { x: number };
-  'tenant:knock': { i: number };
+  'tenant:knock': { i: number; kind: 'knock' | 'scratch' | 'tap'; x: number };
   'tenant:voice': Record<string, never>;
   'tenant:enter': Record<string, never>;
   'tenant:repelled': Record<string, never>;
