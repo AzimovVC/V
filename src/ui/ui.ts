@@ -1,5 +1,5 @@
 import { balance } from '../config/balance';
-import { data, roomAt, roomById, thingById } from '../data';
+import { data, roomById, thingById } from '../data';
 import { totalDebt, weatherId, matCount, tidyOf } from '../core/state';
 import { slotCount, slotsFree, toggleEquip, repairItem } from '../systems/furnish';
 import { craft, costText, ownsAlready } from '../systems/craft';
