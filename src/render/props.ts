@@ -171,7 +171,8 @@ function hearth(ctx: CanvasRenderingContext2D, env: Env, x: number, cleared: boo
 function mender(ctx: CanvasRenderingContext2D, env: Env, x: number, cleared: boolean): void {
   const t = env.t;
   const near = Math.abs(env.g.state.player.x - x) < 120;
-  const bob = Math.sin(t * 1.4) * 0.8;
+  const hurt = !!env.g.state.flags['mender_hurt'];
+  const bob = hurt ? 5 : Math.sin(t * 1.4) * 0.8;
   ctx.save();
   ctx.translate(x, FLOOR_Y);
   ctx.fillStyle = 'rgba(0,0,0,0.35)'; blob(ctx, 0, 0, 20, 3, 811, 0.3);
@@ -201,7 +202,7 @@ function mender(ctx: CanvasRenderingContext2D, env: Env, x: number, cleared: boo
   const w = Math.sin(t * 1.6) * 3;
   line(ctx, 8, -30 + bob, 22 + w, -26, 822, 0.3, 1);
   line(ctx, 22 + w, -26, 26 + w, -30, 823, 0.3, 1);
-  if (cleared) {
+  if (cleared && !hurt) {
     // чашка с паром
     ctx.fillStyle = '#c9b88f'; fillRect(ctx, 18, -38 + bob, 7, 6, 824, 0.2);
     ctx.strokeStyle = 'rgba(230,220,200,0.35)'; ctx.lineWidth = 1;

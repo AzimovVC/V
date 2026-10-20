@@ -73,6 +73,8 @@ export const balance = {
   memory: {
     notebookCost: 4,
     boxCost: 5,
+    tableCost: 4,
+    photoCost: 4,
   },
 
   // ───────── Материалы, находки, крафт, расчистка ─────────
@@ -81,6 +83,8 @@ export const balance = {
     drawer: { scrap: 2, rag: 2, board: 1 },
     crate: { scrap: 2, pipepart: 1, rag: 1 }, // нужен лом
     shelf: { rag: 2, scrap: 2, board: 1 },
+    cabinet: { rag: 1, scrap: 1, pipepart: 1 },
+    dresser: { board: 2, rag: 2, scrap: 1 },
   } as Record<string, Record<string, number>>,
   // Куча хлама: можно рыться снова и снова, каждый раз что-то одно — за огонёк
   scavenge: {
@@ -129,6 +133,7 @@ export const balance = {
     walkSpeed: 62, // пикс/с внутри дома
     leaveSpeed: 95,
     pauseAtStop: 3.2, // с задерживается в каждой комнате маршрута
+    critiqueChance: 0.3, // шанс, что визит — к Починщику
     sightRange: 175, // с какого расстояния замечает
     noticeTime: 1.7, // с до «заметил» (шкала видна игроку)
     noticeDecay: 1.5, // как быстро шкала спадает, когда ты вне зоны

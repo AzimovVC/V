@@ -342,6 +342,152 @@
           "label": "Шаткий верстак"
         }
       ]
+    },
+    {
+      "id": "kitchen",
+      "name": "Кухня",
+      "feeling": "ожидание",
+      "tier": 1,
+      "x": 3000,
+      "w": 520,
+      "furnishable": false,
+      "palette": {
+        "wall": "#2f2b27",
+        "wallLit": "#4a3c2e",
+        "line": "#9a9084",
+        "lineLit": "#e6cfa4",
+        "floor": "#221d19",
+        "floorLit": "#3a2d21",
+        "accent": "#6a5a44",
+        "accentLit": "#d8b070"
+      },
+      "fixtures": [
+        {
+          "id": "stairs_down",
+          "type": "stairs_down",
+          "x": 8,
+          "radius": 40
+        },
+        {
+          "id": "cupboard",
+          "type": "cupboard",
+          "x": 125,
+          "radius": 32
+        },
+        {
+          "id": "dust_k1",
+          "type": "dust",
+          "x": 70,
+          "radius": 16,
+          "label": "Пыль на подоконнике"
+        },
+        {
+          "id": "cabinet",
+          "type": "loot",
+          "x": 195,
+          "radius": 24,
+          "label": "Шкафчик"
+        },
+        {
+          "id": "mess_k1",
+          "type": "mess",
+          "x": 265,
+          "radius": 12,
+          "label": "Рассыпанная крупа"
+        },
+        {
+          "id": "table",
+          "type": "memory_table",
+          "x": 335,
+          "radius": 40
+        },
+        {
+          "id": "fix_k1",
+          "type": "fix",
+          "x": 400,
+          "radius": 14,
+          "label": "Покосившийся стул"
+        },
+        {
+          "id": "kitchen_window",
+          "type": "kitchen_window",
+          "x": 455,
+          "radius": 34
+        }
+      ]
+    },
+    {
+      "id": "bedroom",
+      "name": "Спальня",
+      "feeling": "усталость",
+      "tier": 1,
+      "x": 3520,
+      "w": 520,
+      "furnishable": false,
+      "palette": {
+        "wall": "#2a2a33",
+        "wallLit": "#463c36",
+        "line": "#948fa0",
+        "lineLit": "#e2cfae",
+        "floor": "#1e1d25",
+        "floorLit": "#372c25",
+        "accent": "#5a5470",
+        "accentLit": "#d0a878"
+      },
+      "fixtures": [
+        {
+          "id": "dust_k2",
+          "type": "dust",
+          "x": 38,
+          "radius": 16,
+          "label": "Пыль на подушке"
+        },
+        {
+          "id": "bed_under",
+          "type": "cupboard",
+          "x": 110,
+          "radius": 32
+        },
+        {
+          "id": "mess_k2",
+          "type": "mess",
+          "x": 175,
+          "radius": 12,
+          "label": "Сбитое покрывало"
+        },
+        {
+          "id": "lamp2",
+          "type": "lamp",
+          "x": 245,
+          "radius": 50
+        },
+        {
+          "id": "photo",
+          "type": "memory_photo",
+          "x": 330,
+          "radius": 34
+        },
+        {
+          "id": "dresser",
+          "type": "loot",
+          "x": 395,
+          "radius": 24,
+          "label": "Комод"
+        },
+        {
+          "id": "fix_k2",
+          "type": "fix",
+          "x": 445,
+          "radius": 12,
+          "label": "Криво висящая рамка"
+        },
+        {
+          "id": "door_up",
+          "type": "door_up",
+          "x": 495,
+          "radius": 22
+        }
+      ]
     }
   ]
 }

@@ -41,6 +41,8 @@ export interface GameEvents {
   'memory': { id: string };
   'ui:click': Record<string, never>;
   'stairs': Record<string, never>;
+  'stairs:step': { dir: 'up' | 'down' };
+  'critique': { stage: 'start' | 'end' | 'defended' };
   'save': Record<string, never>;
 }
 

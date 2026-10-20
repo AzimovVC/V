@@ -1,7 +1,7 @@
 import { balance } from '../config/balance';
 import { data, roomById, thingById } from '../data';
 import { weatherId, tidyOf, hasTool, canPay, pay, gain, matCount } from '../core/state';
-import { repelTenant } from './tenant';
+import { repelTenant, canDefend, defendMender } from './tenant';
 import type { Game } from '../core/game';
 import type { FixtureDef, NpcTalk, RoomDef } from '../core/types';
 
@@ -73,6 +73,7 @@ function fixtureAction(g: Game, room: RoomDef, fx: FixtureDef): Action | null {
 
     case 'wardrobe':
     case 'niche':
+    case 'cupboard':
       return {
         id: 'hide', label: 'Спрятаться', icon: '◐',
         run: () => { s.player.hidden = fx.id; s.player.x = g.fixtureX(room, fx); g.stopRest(); g.bus.emit('player:hide', { id: fx.id }); },
@@ -85,13 +86,54 @@ function fixtureAction(g: Game, room: RoomDef, fx: FixtureDef): Action | null {
         return {
           id: 'stairs', label: 'Подняться', icon: '⇧',
           run: () => {
+            if (s.flags['floor1_seen']) { g.climb('up'); return; }
+            s.flags['floor1_seen'] = true;
             s.flags['finale'] = true;
             g.bus.emit('stairs', {});
-            g.ui.showMemory(T.stairs.title, T.stairs.text, () => g.save());
+            g.ui.showMemory(T.stairs.title, T.stairs.text, () => { g.save(); g.climb('up'); });
           },
         };
       }
       return null;
+    }
+
+    case 'stairs_down':
+      return { id: 'down', label: 'Спуститься', icon: '⇩', run: () => g.climb('down') };
+
+    case 'door_up':
+      return { id: 'doorup', label: 'Дальше — ярус', icon: '⇧', run: () => g.toast(T.doorUp) };
+
+    case 'kitchen_window':
+      return { id: 'kwin', label: 'Постоять', icon: '▭', run: () => g.toast(T.kitchenWindow) };
+
+    case 'memory_table': {
+      const known = !!s.flags['memory_table'];
+      return {
+        id: 'memory', label: known ? 'Перечитать' : 'Вспомнить', icon: '✎',
+        run: () => {
+          if (!known) {
+            if (!spend(g, balance.memory.tableCost)) return;
+            s.flags['memory_table'] = true;
+            g.bus.emit('memory', { id: 'table' });
+            g.ui.showMemory(T.memoryTable.title, T.memoryTable.text, () => { bothMemories(g); g.save(); });
+          } else g.ui.showMemory(T.memoryTable.title, T.memoryTableAgain);
+        },
+      };
+    }
+
+    case 'memory_photo': {
+      const known = !!s.flags['memory_photo'];
+      return {
+        id: 'memory', label: known ? 'Перечитать' : 'Вспомнить', icon: '✎',
+        run: () => {
+          if (known) { g.ui.showMemory(T.memoryPhoto.title, T.memoryPhotoAgain); return; }
+          if (!s.flags['memory_table']) { g.toast(T.memoryPhotoNeed); return; }
+          if (!spend(g, balance.memory.photoCost)) return;
+          s.flags['memory_photo'] = true;
+          g.bus.emit('memory', { id: 'photo' });
+          g.ui.showMemory(T.memoryPhoto.title, T.memoryPhoto.text, () => { bothMemories(g); g.save(); });
+        },
+      };
     }
 
     case 'vent': {
@@ -270,9 +312,32 @@ function fixtureAction(g: Game, room: RoomDef, fx: FixtureDef): Action | null {
     }
 
     case 'npc':
+      if (canDefend(g)) {
+        return { id: 'defend', label: 'Заступиться', icon: '✋', run: () => {
+          if (s.energy < balance.tenant.boundaryCost) { g.toast('Не хватает огонька для этих слов.'); return; }
+          defendMender(g);
+        } };
+      }
+      if (s.flags['mender_hurt']) {
+        return { id: 'sit', label: 'Посидеть рядом', icon: '☺', run: () => {
+          g.ui.showMemory('Починщик', T.menderSit, () => {
+            s.flags['mender_hurt'] = false;
+            if (s.flags['workshop_cleared']) s.energy = Math.min(balance.energy.max, Math.max(s.energy, balance.mender.teaEnergy));
+            g.save();
+          });
+        } };
+      }
       return { id: 'talk', label: 'Поговорить', icon: '☺', run: () => talkTo(g, fx.id) };
   }
   return null;
+}
+
+function bothMemories(g: Game): void {
+  const s = g.state;
+  if (s.flags['memory_table'] && s.flags['memory_photo'] && !s.flags['floor1_done']) {
+    s.flags['floor1_done'] = true;
+    g.toast(data.texts.bothMemories);
+  }
 }
 
 /** После разбора завала: открыть проход, отметить расчищенную мастерскую. */

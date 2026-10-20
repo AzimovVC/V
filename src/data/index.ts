@@ -36,6 +36,10 @@ export const WORLD_LEFT = -170;
 export const WORLD_RIGHT = 2100;
 export const ROOM_H = 260;
 export const FLOOR_Y = 232;
+/** Второй этаж лежит в том же мире правее (x ≥ F1X), а рисуется над подвалом и сдвигается на (F1X, ROOM_H). */
+export const F1X = 3000;
+export const onFloor1 = (x: number): boolean => x >= F1X;
+export const localX = (x: number): number => (x >= F1X ? x - F1X : x);
 
 export function roomAt(x: number): RoomDef {
   for (const r of data.rooms) if (x >= r.x && x < r.x + r.w) return r;

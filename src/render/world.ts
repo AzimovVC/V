@@ -1,5 +1,5 @@
 import { balance } from '../config/balance';
-import { data, FLOOR_Y, ROOM_H, WORLD_LEFT, WORLD_RIGHT, roomById } from '../data';
+import { data, FLOOR_Y, ROOM_H, WORLD_LEFT, WORLD_RIGHT, F1X, onFloor1 } from '../data';
 import { leakLevel } from '../core/state';
 import type { Game } from '../core/game';
 import type { RoomDef, WeatherId } from '../core/types';
@@ -110,13 +110,14 @@ function drawBuilding(ctx: CanvasRenderingContext2D, env: Env): void {
 
   // верхние ярусы (тёмные, недоступные пока)
   for (let k = 1; k <= 4; k++) {
-    const top = -FLOOR_H * k, bot = top + FLOOR_H;
+    const hk = k === 1 ? ROOM_H : FLOOR_H;
+    const top = k === 1 ? -ROOM_H : -ROOM_H - FLOOR_H * (k - 1), bot = top + hk;
     ctx.fillStyle = '#16110f';
-    ctx.fillRect(L, top, W, FLOOR_H);
+    ctx.fillRect(L, top, W, hk);
     ctx.strokeStyle = 'rgba(185,169,143,0.2)'; ctx.lineWidth = 1.4;
-    hatch(ctx, L, top, W, FLOOR_H, 16, 10 + k, 0.8);
+    hatch(ctx, L, top, W, hk, 16, 10 + k, 0.8);
     ctx.strokeStyle = 'rgba(185,169,143,0.42)'; ctx.lineWidth = 2;
-    rect(ctx, L, top, W, FLOOR_H, 20 + k, 1.6);
+    rect(ctx, L, top, W, hk, 20 + k, 1.6);
     // окна
     for (let i = 0; i < 8; i++) {
       const wx = L + 60 + i * 215;
@@ -133,7 +134,7 @@ function drawBuilding(ctx: CanvasRenderingContext2D, env: Env): void {
     ctx.fillText(`${tier.name} · ${tier.theme}`, L + 14, bot - 12);
   }
   // крыша
-  const rt = -FLOOR_H * 4;
+  const rt = -ROOM_H - FLOOR_H * 3;
   ctx.fillStyle = '#100c0a';
   fillPoly(ctx, [[L - 20, rt], [(L + R) / 2, rt - 120], [R + 20, rt]], 5, 1);
   ctx.strokeStyle = 'rgba(185,169,143,0.4)'; ctx.lineWidth = 2;
@@ -166,16 +167,17 @@ function drawStairwell(ctx: CanvasRenderingContext2D, env: Env): void {
   ctx.strokeStyle = 'rgba(150,170,185,0.45)'; ctx.lineWidth = 1.8;
   // марши лестницы вверх
   for (let k = 0; k < 5; k++) {
-    const yBase = FLOOR_Y - FLOOR_H * k;
+    const yBase = k === 0 ? FLOOR_Y : FLOOR_Y - ROOM_H - FLOOR_H * (k - 1);
+    const rise = k === 0 ? ROOM_H : FLOOR_H;
     const dir = k % 2 === 0 ? 1 : -1;
     const sa = dir === 1 ? x0 + 6 : x1 - 6;
     const sb = dir === 1 ? x1 - 6 : x0 + 6;
     const n = 8;
     for (let i = 0; i < n; i++) {
       const t = i / n;
-      const sx = sa + (sb - sa) * t, sy = yBase - FLOOR_H * t * 0.92;
+      const sx = sa + (sb - sa) * t, sy = yBase - rise * t * 0.92;
       line(ctx, sx, sy, sx + (sb - sa) / n, sy, k * 20 + i, 0.5, 1);
-      line(ctx, sx + (sb - sa) / n, sy, sx + (sb - sa) / n, sy - (FLOOR_H * 0.92) / n, k * 20 + i + 1, 0.5, 1);
+      line(ctx, sx + (sb - sa) / n, sy, sx + (sb - sa) / n, sy - (rise * 0.92) / n, k * 20 + i + 1, 0.5, 1);
     }
   }
   void env;
@@ -632,10 +634,23 @@ function drawWalls(ctx: CanvasRenderingContext2D, env: Env): void {
 
 // ───────────────────────── актёры ─────────────────────────
 
+function floorShift(ctx: CanvasRenderingContext2D, x: number): void {
+  if (onFloor1(x)) ctx.translate(-F1X, -ROOM_H);
+}
+
 function drawPlayer(ctx: CanvasRenderingContext2D, env: Env): void {
   const { g, t } = env;
   const s = g.state, rt = g.rt;
-  if (s.player.hidden) return;
+  if (s.player.hidden || rt.transit) return;
+  ctx.save();
+  floorShift(ctx, s.player.x);
+  drawPlayerBody(ctx, env, t);
+  ctx.restore();
+}
+
+function drawPlayerBody(ctx: CanvasRenderingContext2D, env: Env, t: number): void {
+  const { g } = env;
+  const s = g.state, rt = g.rt;
   const x = s.player.x;
   const walking = rt.dir !== 0;
   const bob = walking ? Math.sin(rt.walkPhase) * 1.6 : Math.sin(t * 2) * 0.5;
@@ -683,14 +698,19 @@ function unseenAtEntrance(g: Game): boolean {
   return t.entrance !== 'door' && (t.phase === 'steps' || t.phase === 'knock');
 }
 
+let tenPrevX = 0, tenFace: 1 | -1 = 1;
+
 function drawTenant(ctx: CanvasRenderingContext2D, env: Env): void {
   const { g, t } = env;
   const ten = g.rt.tenant;
-  if (ten.phase === 'away' || unseenAtEntrance(g)) return;
+  if (ten.phase === 'away' || unseenAtEntrance(g) || ten.climb) return;
   const x = ten.x;
+  if (Math.abs(x - tenPrevX) > 0.01) { tenFace = x > tenPrevX ? 1 : -1; tenPrevX = x; }
+  ctx.save();
+  floorShift(ctx, x);
   const walking = ten.phase !== 'knock' && !(ten.phase === 'patrol' && ten.arrived && ten.pause > 0);
   const sway = walking ? Math.sin(t * 6) * 1.5 : Math.sin(t * 1.2) * 0.5;
-  const face = ten.phase === 'leave' ? -1 : 1;
+  const face = ten.phase === 'knock' ? 1 : tenFace;
   const h = 70;
 
   ctx.save();
@@ -712,30 +732,140 @@ function drawTenant(ctx: CanvasRenderingContext2D, env: Env): void {
     line(ctx, 6, -h * 0.72, 22 + hit, -h * 0.62, 605, 0.5, 1);
   }
   ctx.restore();
+  ctx.restore();
 }
 
 /** Глаза жильца и «Я» в шкафу — поверх темноты (страшно от узнавания, а не от крика). */
 export function drawEyes(ctx: CanvasRenderingContext2D, env: Env): void {
   const { g, t } = env;
   const ten = g.rt.tenant;
-  if (ten.phase !== 'away' && !unseenAtEntrance(g)) {
-    const face = ten.phase === 'leave' ? -1 : 1;
+  if (ten.phase !== 'away' && !unseenAtEntrance(g) && !ten.climb) {
+    const face = ten.phase === 'knock' ? 1 : tenFace;
+    ctx.save();
+    floorShift(ctx, ten.x);
     const ex = ten.x + face * 6, ey = FLOOR_Y - 71 + Math.sin(t * 6) * 1.5;
     const a = ten.phase === 'steps' ? 0.35 : 0.8;
     ctx.fillStyle = `rgba(235,225,205,${a})`;
     ctx.fillRect(ex - 2.5, ey, 2.2, 1.6);
     ctx.fillRect(ex + 2.5, ey, 2.2, 1.6);
+    ctx.restore();
   }
   const h = g.state.player.hidden;
   if (h) {
-    const room = roomById(h === 'wardrobe' ? 'myroom' : 'boiler');
+    const room = data.rooms.find((r) => r.fixtures.some((f) => f.id === h))!;
     const fx = room.fixtures.find((f) => f.id === h)!;
-    const ax = room.x + fx.x, ey = h === 'wardrobe' ? 140 : 150;
+    const ax = room.x + fx.x;
+    const ey = h === 'wardrobe' ? 140 : h === 'bed_under' ? 205 : h === 'cupboard' ? 130 : 150;
     const blink = (Math.sin(t * 0.9) > 0.985) ? 0.2 : 1;
+    ctx.save();
+    floorShift(ctx, ax);
     ctx.fillStyle = `rgba(255,215,140,${0.85 * blink})`;
     ctx.fillRect(ax - 4.5, ey, 2.6, 2 * blink + 0.4);
     ctx.fillRect(ax + 1.8, ey, 2.6, 2 * blink + 0.4);
+    ctx.restore();
   }
+}
+
+// ───────────────────────── второй этаж ─────────────────────────
+
+function drawKitchen(ctx: CanvasRenderingContext2D, env: Env, room: RoomDef): void {
+  const { g, t } = env, s = g.state;
+  const ink = inkFor(room, env), X = room.x;
+  ctx.strokeStyle = ink; ctx.lineWidth = 1.8;
+  // спуск вниз: тёмный проём со ступенями
+  ctx.fillStyle = '#0a0a0c';
+  fillPoly(ctx, [[X, 80], [X + 52, 92], [X + 52, FLOOR_Y], [X, FLOOR_Y]], 901, 0.6);
+  polyline(ctx, [[X, 80], [X + 52, 92], [X + 52, FLOOR_Y]], 902, 0.8);
+  for (let i = 0; i < 5; i++) line(ctx, X + 4, FLOOR_Y - 6 - i * 10, X + 48 - i * 4, FLOOR_Y - 6 - i * 10, 903 + i, 0.5, 1);
+  // шкаф (укрытие)
+  const cx = X + 125, hid = s.player.hidden === 'cupboard';
+  ctx.fillStyle = '#3a2d23';
+  fillRect(ctx, cx - 24, 98, 48, FLOOR_Y - 98, 910, 0.8);
+  rect(ctx, cx - 24, 98, 48, FLOOR_Y - 98, 910, 0.9);
+  line(ctx, cx, 98, cx, FLOOR_Y, 911, 0.5, 1);
+  ctx.fillStyle = '#a58d5d'; fillRect(ctx, cx - 6, 150, 3, 8, 912, 0.2); fillRect(ctx, cx + 3, 150, 3, 8, 913, 0.2);
+  void hid;
+  // тумба с находками
+  const dx = X + 195, done = s.done.includes('cabinet');
+  ctx.fillStyle = '#4a382a';
+  fillRect(ctx, dx - 22, FLOOR_Y - 54, 44, 54, 920, 0.7);
+  rect(ctx, dx - 22, FLOOR_Y - 54, 44, 54, 920, 0.8);
+  line(ctx, dx - 22, FLOOR_Y - 30, dx + 22, FLOOR_Y - 30, 921, 0.4, 1);
+  if (done) { ctx.fillStyle = '#17110f'; fillRect(ctx, dx - 18, FLOOR_Y - 28, 36, 22, 922, 0.4); }
+  // стол и стулья
+  const tx = X + 335, known = !!s.flags['memory_table'];
+  ctx.fillStyle = '#5a4430';
+  fillRect(ctx, tx - 46, FLOOR_Y - 56, 92, 6, 930, 0.5);
+  rect(ctx, tx - 46, FLOOR_Y - 56, 92, 6, 930, 0.6);
+  line(ctx, tx - 40, FLOOR_Y - 50, tx - 42, FLOOR_Y, 931, 0.4, 1);
+  line(ctx, tx + 40, FLOOR_Y - 50, tx + 42, FLOOR_Y, 932, 0.4, 1);
+  for (const [cxx, lean] of [[tx - 66, 1], [tx + 66, -1]] as Array<[number, number]>) {
+    line(ctx, cxx, FLOOR_Y - 30, cxx, FLOOR_Y, 933, 0.3, 1);
+    line(ctx, cxx - 8, FLOOR_Y - 30, cxx + 8, FLOOR_Y - 30, 934, 0.3, 1);
+    line(ctx, cxx - 8 * lean, FLOOR_Y - 30, cxx - 10 * lean, FLOOR_Y - 62, 935, 0.3, 1);
+  }
+  ctx.fillStyle = '#c9b88f'; fillRect(ctx, tx - 6, FLOOR_Y - 66, 9, 10, 936, 0.2);
+  if (!known) { ctx.strokeStyle = `rgba(240,205,140,${0.3 + 0.25 * Math.sin(t * 2.6)})`; ctx.lineWidth = 1.5; blob(ctx, tx, FLOOR_Y - 60, 34, 16, 937, 0.3, false, true); }
+  // окно во двор
+  const wx = X + 455;
+  drawWindowView(ctx, env, wx, 34, 64, 62, env.wid, env.sev);
+  ctx.strokeStyle = ink; ctx.lineWidth = 2.2;
+  rect(ctx, wx - 32, 34, 64, 62, 940, 1.1);
+  line(ctx, wx, 34, wx, 96, 941, 0.8, 1);
+  line(ctx, wx - 38, 96, wx + 38, 96, 942, 0.9);
+}
+
+function drawBedroom(ctx: CanvasRenderingContext2D, env: Env, room: RoomDef): void {
+  const { g } = env, s = g.state;
+  const ink = inkFor(room, env), X = room.x;
+  ctx.strokeStyle = ink; ctx.lineWidth = 1.8;
+  // кровать, под ней укрытие
+  const bx = X + 110;
+  ctx.fillStyle = '#2c2420';
+  fillRect(ctx, bx - 62, FLOOR_Y - 46, 124, 10, 950, 0.6);
+  rect(ctx, bx - 62, FLOOR_Y - 46, 124, 10, 950, 0.7);
+  line(ctx, bx - 60, FLOOR_Y - 36, bx - 60, FLOOR_Y, 951, 0.4, 1);
+  line(ctx, bx + 60, FLOOR_Y - 36, bx + 60, FLOOR_Y, 952, 0.4, 1);
+  ctx.fillStyle = '#4a4036';
+  fillPoly(ctx, [[bx - 62, FLOOR_Y - 46], [bx - 50, FLOOR_Y - 62], [bx + 20, FLOOR_Y - 62], [bx + 62, FLOOR_Y - 46]], 953, 0.7);
+  fillRect(ctx, bx + 36, FLOOR_Y - 74, 26, 28, 954, 0.4);
+  ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.fillRect(bx - 58, FLOOR_Y - 34, 116, 34);
+  // лампа
+  ctx.strokeStyle = INK;
+  drawLamp(ctx, env, X + 245);
+  // фотография
+  const px = X + 330;
+  ctx.fillStyle = '#2a211b'; fillRect(ctx, px - 20, 84, 40, 50, 960, 0.6);
+  ctx.strokeStyle = '#a58d5d'; ctx.lineWidth = 1.8; rect(ctx, px - 20, 84, 40, 50, 960, 0.8);
+  ctx.fillStyle = s.flags['memory_photo'] ? '#cdb58f' : '#6a5c4a'; fillRect(ctx, px - 14, 90, 28, 38, 961, 0.4);
+  // комод
+  const dx = X + 395, done = s.done.includes('dresser');
+  ctx.strokeStyle = ink; ctx.lineWidth = 1.8; ctx.fillStyle = '#4a382a';
+  fillRect(ctx, dx - 30, FLOOR_Y - 72, 60, 72, 970, 0.7);
+  rect(ctx, dx - 30, FLOOR_Y - 72, 60, 72, 970, 0.8);
+  for (let i = 1; i < 3; i++) line(ctx, dx - 30, FLOOR_Y - 72 + i * 24, dx + 30, FLOOR_Y - 72 + i * 24, 971 + i, 0.4, 1);
+  if (done) { ctx.fillStyle = '#17110f'; fillRect(ctx, dx - 26, FLOOR_Y - 48, 52, 8, 975, 0.3); }
+  // дверь выше: закрыта
+  const ux = X + 495;
+  ctx.fillStyle = '#2e241c'; fillRect(ctx, ux - 18, 78, 36, FLOOR_Y - 78, 980, 0.6);
+  ctx.strokeStyle = '#9a8870'; ctx.lineWidth = 2; rect(ctx, ux - 18, 78, 36, FLOOR_Y - 78, 980, 0.9);
+  line(ctx, ux - 18, 110, ux + 18, 140, 981, 0.6, 1); line(ctx, ux + 18, 110, ux - 18, 140, 982, 0.6, 1);
+}
+
+/** Стены второго этажа: левый край, проём кухня↔спальня, правый край. */
+function drawWalls1(ctx: CanvasRenderingContext2D): void {
+  const wall = (x: number, gap: boolean) => {
+    ctx.fillStyle = '#17110f';
+    ctx.fillRect(x - 7, 0, 14, gap ? 78 : ROOM_H);
+    if (gap) ctx.fillRect(x - 7, FLOOR_Y, 14, ROOM_H - FLOOR_Y);
+    ctx.strokeStyle = 'rgba(185,169,143,0.55)'; ctx.lineWidth = 2.2;
+    line(ctx, x - 7, 0, x - 7, gap ? 78 : ROOM_H, 990 + x, 1);
+    line(ctx, x + 7, 0, x + 7, gap ? 78 : ROOM_H, 991 + x, 1);
+    if (gap) { line(ctx, x - 7, FLOOR_Y, x - 7, ROOM_H, 992 + x, 1); line(ctx, x + 7, FLOOR_Y, x + 7, ROOM_H, 993 + x, 1); }
+  };
+  wall(F1X, false); wall(F1X + 520, true); wall(F1X + 1040, false);
+  ctx.strokeStyle = 'rgba(185,169,143,0.5)'; ctx.lineWidth = 2;
+  line(ctx, F1X, ROOM_H, F1X + 1040, ROOM_H, 995, 1.2);
 }
 
 // ───────────────────────── общая сборка ─────────────────────────
@@ -744,6 +874,7 @@ export function drawWorld(ctx: CanvasRenderingContext2D, env: Env): void {
   drawBuilding(ctx, env);
   drawStairwell(ctx, env);
   for (const room of data.rooms) {
+    if (onFloor1(room.x)) continue;
     drawRoomShell(ctx, env, room);
     if (room.id === 'myroom') drawMyRoom(ctx, env, room);
     else if (room.id === 'boiler') drawBoiler(ctx, env, room);
@@ -752,6 +883,19 @@ export function drawWorld(ctx: CanvasRenderingContext2D, env: Env): void {
     drawProps(ctx, env, room);
   }
   drawWalls(ctx, env);
+  // второй этаж: те же координаты комнат, сдвинутые на ярус вверх
+  ctx.save();
+  ctx.translate(-F1X, -ROOM_H);
+  for (const room of data.rooms) {
+    if (!onFloor1(room.x)) continue;
+    drawRoomShell(ctx, env, room);
+    if (room.id === 'kitchen') drawKitchen(ctx, env, room);
+    else drawBedroom(ctx, env, room);
+    drawDecay(ctx, env, room);
+    drawProps(ctx, env, room);
+  }
+  drawWalls1(ctx);
+  ctx.restore();
   drawTenant(ctx, env);
   drawPlayer(ctx, env);
 }

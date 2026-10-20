@@ -53,6 +53,7 @@ export interface TenantDef {
   id: string;
   stops: Record<string, number>; // roomId → абсолютный x остановки
   entrances: Array<{ id: 'door' | 'vent' | 'window'; x: number; kind: 'knock' | 'scratch' | 'tap'; weight: number; route: string[]; warn: string }>;
+  critique?: { route: string[]; pause: number; lines: Array<{ who: string; text: string }>; after: string };
   lines: { steps: string[]; knock: string[]; scratch: string[]; tap: string[]; stop: string[]; caught: string; repelled: string };
 }
 

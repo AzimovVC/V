@@ -1,5 +1,5 @@
 import { balance } from '../config/balance';
-import { data, roomAt, WORLD_RIGHT } from '../data';
+import { data, roomAt, onFloor1, F1X, WORLD_RIGHT } from '../data';
 import type { Game } from '../core/game';
 
 /** Движение, смена комнат, отмена отдыха/работы при движении. */
@@ -17,7 +17,7 @@ export function updatePlayer(g: Game, dt: number): void {
   }
 
   // границы мира: запертые двери и неразобранные завалы не пускают
-  p.x = Math.max(16, Math.min(maxReach(g), p.x));
+  p.x = onFloor1(p.x) ? Math.max(F1X + 16, Math.min(F1X + 1040 - 22, p.x)) : Math.max(16, Math.min(maxReach(g), p.x));
 
   const room = roomAt(p.x);
   if (room.id !== rt.roomId) {

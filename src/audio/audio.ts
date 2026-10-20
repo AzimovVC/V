@@ -1,5 +1,6 @@
 import { balance } from '../config/balance';
 import { leakLevel } from '../core/state';
+import { localX, onFloor1 } from '../data';
 import type { Game } from '../core/game';
 
 const MUTE_KEY = 'dom-vnutri.muted';
@@ -74,6 +75,7 @@ export class AudioEngine {
       on('ui:click', () => this.blip(520, 0.05)),
       on('tenant:knock', ({ i, kind, x }) => (kind === 'scratch' ? this.scratch(i, x) : kind === 'tap' ? this.glassTap(i, x) : this.knock(i))),
       on('tenant:steps', ({ x }) => this.step(x)),
+      on('stairs:step', () => this.stairStep()),
       on('tenant:voice', () => this.mutter()),
       on('tenant:enter', () => this.thud(70, 0.5, 0.25, -0.6)),
       on('tenant:bolt', () => { this.crack(); this.thud(60, 0.5, 0.3, -0.6); }),
@@ -287,12 +289,25 @@ export class AudioEngine {
 
   private panOf(x: number): number {
     const g = this.game;
-    return g ? Math.max(-1, Math.min(1, (x - g.state.player.x) / 420)) : 0;
+    return g ? Math.max(-1, Math.min(1, (localX(x) - localX(g.state.player.x)) / 420)) : 0;
+  }
+
+  /** Расстояние до источника звука: на другом этаже глуше и дальше. */
+  private dist(x: number): number {
+    const px = this.game?.state.player.x ?? 0;
+    return Math.abs(localX(x) - localX(px)) + (onFloor1(x) !== onFloor1(px) ? 220 : 0);
+  }
+
+  /** Шаги по лестнице: глухие, неровные. */
+  private stairStep(): void {
+    const v = 0.34;
+    this.burst(0.08, v, 'lowpass', 420, { pan: -0.2 });
+    this.tone(70, 'sine', 0.1, v * 0.8, { glide: 45, pan: -0.2 });
   }
 
   /** Скрежет по металлу решётки: шипящий шум с дрожащим фильтром. */
   private scratch(i: number, x: number): void {
-    const v = (0.22 + 0.12 * i) / (1 + Math.abs(x - (this.game?.state.player.x ?? 0)) / 300);
+    const v = (0.22 + 0.12 * i) / (1 + this.dist(x) / 300);
     const pan = this.panOf(x);
     this.burst(0.28, v, 'highpass', 2600, { pan });
     this.burst(0.2, v * 0.8, 'bandpass', 3800, { pan, at: 0.22, q: 3 });
@@ -301,7 +316,7 @@ export class AudioEngine {
 
   /** Сухой стук ногтем по стеклу. */
   private glassTap(i: number, x: number): void {
-    const v = (0.3 + 0.15 * i) / (1 + Math.abs(x - (this.game?.state.player.x ?? 0)) / 300);
+    const v = (0.3 + 0.15 * i) / (1 + this.dist(x) / 300);
     const pan = this.panOf(x);
     this.tone(1900, 'sine', 0.05, v * 0.6, { glide: 1500, pan });
     this.burst(0.03, v * 0.5, 'highpass', 3000, { pan });
@@ -310,13 +325,12 @@ export class AudioEngine {
 
   private step(x: number): void {
     const g = this.game; if (!g) return;
-    const px = g.state.player.x;
-    const d = Math.abs(x - px);
+    const d = this.dist(x);
     const inside = x >= 0;
     const vol = (inside ? 0.5 : 0.28) / (1 + d / 240);
     const lp = inside ? 520 : 260; // за стеной глуше
-    this.burst(0.09, vol, 'lowpass', lp, { pan: (x - px) / 420 });
-    this.tone(60, 'sine', 0.12, vol * 0.8, { glide: 40, pan: (x - px) / 420 });
+    this.burst(0.09, vol, 'lowpass', lp, { pan: this.panOf(x) });
+    this.tone(60, 'sine', 0.12, vol * 0.8, { glide: 40, pan: this.panOf(x) });
   }
 
   private mutter(): void {
