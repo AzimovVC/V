@@ -10,7 +10,6 @@ export function startRollback(g: Game, kind: 'caught' | 'blackout'): void {
   if (g.rt.rollback) return;
   g.rt.rollback = { kind, t: 0, applied: false };
   g.rt.resting = false;
-  g.rt.working = false;
   g.rt.holding = null;
   if (kind === 'caught') g.bus.emit('tenant:caught', {});
   else g.bus.emit('player:blackout', {});
@@ -58,6 +57,12 @@ function applyRollback(g: Game, kind: 'caught' | 'blackout'): void {
         s.broken.push(id);
         g.bus.emit('item:break', { id });
       }
+    }
+    const boiler = s.rooms['boiler'];
+    if (p.tearsPatch && boiler.patched) {
+      boiler.patched = false;
+      g.bus.emit('patch:torn', { roomId: 'boiler' });
+      g.toast(data.texts.pipe.patchTorn);
     }
     g.toast(data.texts.caught);
     resetTenantAfter(g, balance.tenant.afterCaughtDelay);

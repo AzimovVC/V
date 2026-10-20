@@ -1,10 +1,30 @@
 {
   "tiers": [
-    { "id": "basement", "name": "Подвал", "theme": "выживание" },
-    { "id": "t1", "name": "Первый ярус", "theme": "опора" },
-    { "id": "t2", "name": "Второй ярус", "theme": "связь" },
-    { "id": "t3", "name": "Третий ярус", "theme": "голос" },
-    { "id": "roof", "name": "Крыша", "theme": "смысл" }
+    {
+      "id": "basement",
+      "name": "Подвал",
+      "theme": "выживание"
+    },
+    {
+      "id": "t1",
+      "name": "Первый ярус",
+      "theme": "опора"
+    },
+    {
+      "id": "t2",
+      "name": "Второй ярус",
+      "theme": "связь"
+    },
+    {
+      "id": "t3",
+      "name": "Третий ярус",
+      "theme": "голос"
+    },
+    {
+      "id": "roof",
+      "name": "Крыша",
+      "theme": "смысл"
+    }
   ],
   "rooms": [
     {
@@ -15,13 +35,81 @@
       "x": 0,
       "w": 520,
       "furnishable": true,
-      "palette": { "wall": "#3b2f29", "wallLit": "#4d3a2c", "line": "#a99880", "lineLit": "#e0c9a0", "floor": "#2a201b", "floorLit": "#3a2a1e", "accent": "#7a5a3c", "accentLit": "#d9a05b" },
+      "palette": {
+        "wall": "#3b2f29",
+        "wallLit": "#4d3a2c",
+        "line": "#a99880",
+        "lineLit": "#e0c9a0",
+        "floor": "#2a201b",
+        "floorLit": "#3a2a1e",
+        "accent": "#7a5a3c",
+        "accentLit": "#d9a05b"
+      },
       "fixtures": [
-        { "id": "door_out", "type": "door_out", "x": 8, "radius": 42 },
-        { "id": "wardrobe", "type": "wardrobe", "x": 100, "radius": 38 },
-        { "id": "lamp", "type": "lamp", "x": 250, "radius": 60 },
-        { "id": "notebook", "type": "notebook", "x": 345, "radius": 36 },
-        { "id": "window", "type": "window", "x": 440, "radius": 50 }
+        {
+          "id": "door_out",
+          "type": "door_out",
+          "x": 8,
+          "radius": 42
+        },
+        {
+          "id": "wardrobe",
+          "type": "wardrobe",
+          "x": 100,
+          "radius": 38
+        },
+        {
+          "id": "drawer",
+          "type": "loot",
+          "x": 183,
+          "radius": 22,
+          "label": "Тумбочка"
+        },
+        {
+          "id": "lamp",
+          "type": "lamp",
+          "x": 250,
+          "radius": 60
+        },
+        {
+          "id": "notebook",
+          "type": "notebook",
+          "x": 345,
+          "radius": 36
+        },
+        {
+          "id": "window",
+          "type": "window",
+          "x": 440,
+          "radius": 36
+        },
+        {
+          "id": "bench",
+          "type": "bench",
+          "x": 488,
+          "radius": 30
+        },
+        {
+          "id": "dust_m1",
+          "type": "dust",
+          "x": 40,
+          "radius": 18,
+          "label": "Пыль в углу"
+        },
+        {
+          "id": "mess_m1",
+          "type": "mess",
+          "x": 298,
+          "radius": 10,
+          "label": "Разбросанные листы"
+        },
+        {
+          "id": "fix_m1",
+          "type": "fix",
+          "x": 392,
+          "radius": 12,
+          "label": "Перекошенная полка"
+        }
       ]
     },
     {
@@ -32,11 +120,73 @@
       "x": 520,
       "w": 520,
       "furnishable": false,
-      "palette": { "wall": "#272e33", "wallLit": "#4a3a2c", "line": "#8d9aa0", "lineLit": "#e3b784", "floor": "#1d2226", "floorLit": "#33271d", "accent": "#7a4a35", "accentLit": "#cf7a3f" },
+      "palette": {
+        "wall": "#272e33",
+        "wallLit": "#4a3a2c",
+        "line": "#8d9aa0",
+        "lineLit": "#e3b784",
+        "floor": "#1d2226",
+        "floorLit": "#33271d",
+        "accent": "#7a4a35",
+        "accentLit": "#cf7a3f"
+      },
       "fixtures": [
-        { "id": "bolt_pickup", "type": "pickup", "x": 70, "radius": 34, "item": "bolt", "label": "Ржавый засов" },
-        { "id": "pipe", "type": "pipe", "x": 190, "radius": 60 },
-        { "id": "niche", "type": "niche", "x": 395, "radius": 40 }
+        {
+          "id": "heap",
+          "type": "scavenge",
+          "x": 50,
+          "radius": 30,
+          "label": "Куча хлама"
+        },
+        {
+          "id": "crate",
+          "type": "loot",
+          "x": 112,
+          "radius": 26,
+          "label": "Запертый ящик",
+          "needs": "crowbar"
+        },
+        {
+          "id": "pipe",
+          "type": "pipe",
+          "x": 195,
+          "radius": 52
+        },
+        {
+          "id": "niche",
+          "type": "niche",
+          "x": 400,
+          "radius": 36
+        },
+        {
+          "id": "barricade",
+          "type": "debris",
+          "x": 485,
+          "radius": 32,
+          "label": "Баррикада",
+          "needs": "crowbar"
+        },
+        {
+          "id": "dust_b1",
+          "type": "dust",
+          "x": 290,
+          "radius": 22,
+          "label": "Пыльный бак"
+        },
+        {
+          "id": "mess_b1",
+          "type": "mess",
+          "x": 335,
+          "radius": 16,
+          "label": "Перевёрнутое ведро"
+        },
+        {
+          "id": "dust_b2",
+          "type": "dust",
+          "x": 440,
+          "radius": 16,
+          "label": "Паутина у ниши"
+        }
       ]
     },
     {
@@ -47,11 +197,144 @@
       "x": 1040,
       "w": 520,
       "furnishable": false,
-      "lockedBy": "boiler",
-      "palette": { "wall": "#2c2a30", "wallLit": "#4b4034", "line": "#95909b", "lineLit": "#e8d2a8", "floor": "#201e24", "floorLit": "#372b22", "accent": "#5d5566", "accentLit": "#d6b17a" },
+      "lockedBy": "barricade",
+      "palette": {
+        "wall": "#2c2a30",
+        "wallLit": "#4b4034",
+        "line": "#95909b",
+        "lineLit": "#e8d2a8",
+        "floor": "#201e24",
+        "floorLit": "#372b22",
+        "accent": "#5d5566",
+        "accentLit": "#d6b17a"
+      },
       "fixtures": [
-        { "id": "box", "type": "box", "x": 200, "radius": 44 },
-        { "id": "pantry_window", "type": "pantry_window", "x": 370, "radius": 50 }
+        {
+          "id": "shelf",
+          "type": "loot",
+          "x": 105,
+          "radius": 55,
+          "label": "Стеллаж"
+        },
+        {
+          "id": "box",
+          "type": "box",
+          "x": 200,
+          "radius": 40
+        },
+        {
+          "id": "pantry_window",
+          "type": "pantry_window",
+          "x": 370,
+          "radius": 50
+        },
+        {
+          "id": "door_lock",
+          "type": "door_lock",
+          "x": 492,
+          "radius": 34,
+          "needs": "old_key"
+        },
+        {
+          "id": "dust_p1",
+          "type": "dust",
+          "x": 290,
+          "radius": 20,
+          "label": "Пыльные банки"
+        },
+        {
+          "id": "fix_p1",
+          "type": "fix",
+          "x": 425,
+          "radius": 16,
+          "label": "Перекошенная полка"
+        },
+        {
+          "id": "dust_p2",
+          "type": "dust",
+          "x": 45,
+          "radius": 20,
+          "label": "Паутина"
+        }
+      ]
+    },
+    {
+      "id": "workshop",
+      "name": "Мастерская",
+      "feeling": "ремесло",
+      "tier": 0,
+      "x": 1560,
+      "w": 520,
+      "furnishable": false,
+      "lockedBy": "door_lock",
+      "palette": {
+        "wall": "#33291f",
+        "wallLit": "#5a4129",
+        "line": "#a89070",
+        "lineLit": "#f0d29c",
+        "floor": "#241b14",
+        "floorLit": "#40301f",
+        "accent": "#7a5530",
+        "accentLit": "#e0a85e"
+      },
+      "fixtures": [
+        {
+          "id": "debris_a",
+          "type": "debris",
+          "x": 70,
+          "radius": 36,
+          "label": "Завал из досок",
+          "needs": "crowbar"
+        },
+        {
+          "id": "debris_b",
+          "type": "debris",
+          "x": 150,
+          "radius": 34,
+          "label": "Груда тряпья и железа",
+          "needs": "crowbar"
+        },
+        {
+          "id": "mender",
+          "type": "npc",
+          "x": 290,
+          "radius": 46
+        },
+        {
+          "id": "hearth",
+          "type": "hearth",
+          "x": 385,
+          "radius": 28
+        },
+        {
+          "id": "debris_c",
+          "type": "debris",
+          "x": 490,
+          "radius": 30,
+          "label": "Опрокинутый шкаф",
+          "needs": "crowbar"
+        },
+        {
+          "id": "dust_w1",
+          "type": "dust",
+          "x": 200,
+          "radius": 20,
+          "label": "Стружка и пыль"
+        },
+        {
+          "id": "mess_w1",
+          "type": "mess",
+          "x": 345,
+          "radius": 14,
+          "label": "Раскиданные инструменты"
+        },
+        {
+          "id": "fix_w1",
+          "type": "fix",
+          "x": 440,
+          "radius": 14,
+          "label": "Шаткий верстак"
+        }
       ]
     }
   ]

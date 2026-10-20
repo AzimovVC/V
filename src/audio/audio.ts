@@ -85,8 +85,18 @@ export class AudioEngine {
       on('player:breath', () => this.breathSound()),
       on('player:blackout', () => this.fall()),
       on('weather:thunder', ({ dist }) => this.thunder(dist)),
-      on('choice:muffle', () => this.cloth()),
-      on('leak:back', () => this.drip(1, 0)),
+      on('patch', () => this.cloth()),
+      on('patch:torn', () => { this.crack(); this.drip(1, 0); }),
+      on('loot', () => { this.rummage(); this.tone(880, 'sine', 0.5, 0.05, { at: 0.2 }); }),
+      on('scavenge', () => this.rummage()),
+      on('debris', () => { this.crack(); this.thud(90, 0.5, 0.35, 0.2); this.rummage(); }),
+      on('craft', () => { this.tap(); this.chime(); }),
+      on('tidy', ({ kind }) => (kind === 'dust' ? this.cloth() : kind === 'fix' ? this.tap() : this.rummage())),
+      on('room:tidy', () => this.chord([262, 330, 392, 523], 1.4, 5, 0.06)),
+      on('key', () => { this.tone(1320, 'sine', 0.3, 0.08); this.tone(990, 'sine', 0.5, 0.06, { at: 0.12 }); this.creak(); }),
+      on('pipe:turn', () => this.thud(130, 0.12, 0.25, 0)),
+      on('pipe:fit', () => { this.crack(); this.chime(); }),
+      on('talk', () => { this.tone(180, 'sine', 0.35, 0.05, { glide: 150 }); this.tone(210, 'sine', 0.3, 0.04, { glide: 170, at: 0.4 }); }),
       on('room:rooted', () => { this.chord([196, 247, 294, 392], 1.8, 6, 0.08); }),
       on('room:opened', () => this.creak()),
       on('item:gain', () => this.chime()),
@@ -191,7 +201,7 @@ export class AudioEngine {
     set('lamp', room === 'myroom' ? 0.05 * Math.max(0.2, 1 - lampD / 320) : 0.006, 0.4);
 
     const nearPipe = room === 'boiler' ? Math.max(0.15, 1 - Math.abs(s.player.x - 710) / 400) : room === 'myroom' ? 0.06 : 0;
-    set('pressure', s.rooms['boiler'].rooted ? 0 : 0.11 * nearPipe * (s.rooms['boiler'].muffledLeft > 0 ? 0.4 : 1), 0.6);
+    set('pressure', s.rooms['boiler'].rooted ? 0 : 0.11 * nearPipe * (s.rooms['boiler'].patched ? 0.4 : 1), 0.6);
 
     set('pad', (pantryQuiet ? 0.055 : 0) + rooted * 0.012 + (rt.resting ? 0.02 : 0), 1.2);
 
@@ -330,6 +340,7 @@ export class AudioEngine {
     this.tone(210, 'sawtooth', 0.35, 0.06, { glide: 150, lp: 420 });
     this.burst(0.3, 0.12, 'bandpass', 500, { sweep: 300, q: 3 });
   }
+  private rummage(): void { for (let i = 0; i < 4; i++) this.burst(0.06, 0.22, 'bandpass', 900 + i * 260, { at: i * 0.09, q: 1.2 }); }
   private cloth(): void { this.burst(0.5, 0.25, 'lowpass', 700, { sweep: 300 }); }
   private crack(): void { this.burst(0.06, 0.6, 'bandpass', 1600, { q: 2 }); this.burst(0.05, 0.4, 'bandpass', 900, { at: 0.07, q: 2 }); }
   private glass(): void { this.burst(0.5, 0.45, 'highpass', 3500, { q: 0.6 }); this.tone(2300, 'sine', 0.5, 0.04, { glide: 1900 }); }

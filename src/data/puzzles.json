@@ -1,0 +1,13 @@
+{
+  "pipe": {
+    "cols": 4,
+    "rows": 3,
+    "inRow": 0,
+    "outRow": 2,
+    "tiles": [
+      [ { "t": "straight", "r": 0 }, { "t": "elbow", "r": 0 }, { "t": "elbow", "r": 1 }, { "t": "straight", "r": 0 } ],
+      [ { "t": "elbow", "r": 2 }, { "t": "elbow", "r": 1, "broken": true }, { "t": "elbow", "r": 3 }, { "t": "elbow", "r": 3 } ],
+      [ { "t": "straight", "r": 1 }, { "t": "elbow", "r": 0 }, { "t": "elbow", "r": 2, "broken": true }, { "t": "straight", "r": 0 } ]
+    ]
+  }
+}

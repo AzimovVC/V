@@ -38,14 +38,11 @@ button { font-family: inherit; color: var(--ink); cursor: pointer; }
 button.small { padding: 6px 12px; font-size: 13px; background: rgba(20,15,12,.7); border: 1px solid rgba(232,220,198,.35); border-radius: 10px 4px 11px 4px; }
 button.small:active { background: rgba(60,40,28,.9); }
 #btn-mute.off { opacity: .45; text-decoration: line-through; }
-#roomname { position: absolute; top: calc(52px + var(--safe-t)); left: 0; right: 0; text-align: center; font-size: 15px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); opacity: 0; transition: opacity 1.2s; text-shadow: 0 1px 8px #000; }
+#roomname { position: absolute; top: calc(80px + var(--safe-t)); left: 0; right: 0; text-align: center; font-size: 15px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); opacity: 0; transition: opacity 1.2s; text-shadow: 0 1px 8px #000; }
 #roomname.show { opacity: .95; }
-#notice { position: absolute; top: calc(86px + var(--safe-t)); left: 50%; width: 60px; margin-left: -30px; color: var(--danger); opacity: 0; transition: opacity .2s; text-align: center; }
+#notice { position: absolute; top: calc(110px + var(--safe-t)); left: 50%; width: 60px; margin-left: -30px; color: var(--danger); opacity: 0; transition: opacity .2s; text-align: center; }
 #notice svg { width: 52px; }
 #notice i { display: block; height: 3px; background: var(--danger); width: 0; margin: 2px auto 0; }
-#work { position: absolute; top: calc(120px + var(--safe-t)); left: 50%; width: 220px; margin-left: -110px; text-align: center; font-size: 13px; color: var(--muted); font-style: italic; opacity: 0; transition: opacity .3s; }
-#work.show { opacity: 1; }
-#work .bar { width: 100%; margin-top: 4px; }
 
 /* ───── тосты и субтитры ───── */
 #toast, #subtitle { position: absolute; left: 50%; transform: translateX(-50%); width: min(92vw, 520px); text-align: center; pointer-events: none; transition: opacity .6s; opacity: 0; text-shadow: 0 1px 10px #000, 0 0 3px #000; }
@@ -108,3 +105,18 @@ button.small:active { background: rgba(60,40,28,.9); }
 .title-buttons button:active { background: rgba(160,106,60,.8); }
 .title-card .foot { font-size: 12px; color: #766b5c; line-height: 1.6; }
 #title.gone { opacity: 0; pointer-events: none; transition: opacity 1.4s; }
+
+/* ───── рюкзак, верстак, труба ───── */
+.mats { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 10px; }
+.mat { font-size: 13px; padding: 3px 9px; border: 1px solid rgba(232,220,198,.3); border-radius: 9px 4px 10px 4px; background: rgba(60,44,32,.5); }
+.mat b { color: var(--warm); font-weight: normal; }
+.mat i { font-style: normal; color: var(--warm); margin-left: 3px; }
+.item button small { color: var(--muted); font-size: 11px; }
+.item button:disabled { opacity: .4; cursor: default; }
+#chip-tidy { color: #b9c9a8 !important; }
+.pipegrid { position: relative; display: grid; gap: 4px; margin: 6px 22px 12px; }
+.pipegrid .pin, .pipegrid .pout { position: absolute; top: 0; color: var(--warm); font-size: 16px; line-height: 1; display: none; }
+.tile { aspect-ratio: 1; padding: 0; background: rgba(40,30,24,.8); border: 1px solid rgba(232,220,198,.3); border-radius: 8px 3px 9px 3px; overflow: hidden; }
+.tile svg { width: 100%; height: 100%; display: block; transition: transform .18s; }
+.tile.cracked { border-color: rgba(201,105,79,.7); background: rgba(70,36,30,.6); }
+.tile:active { background: rgba(110,76,46,.7); }

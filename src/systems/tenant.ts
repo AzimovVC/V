@@ -50,7 +50,7 @@ function say(g: Game, kind: 'knock' | 'stop'): void {
   const t = g.rt.tenant;
   const lines = def().lines[kind];
   g.bus.emit('tenant:voice', {});
-  g.bus.emit('subtitle', { text: lines[t.lineIdx++ % lines.length], who: def().name });
+  g.bus.emit('subtitle', { text: lines[t.lineIdx++ % lines.length] });
 }
 
 function startLeaving(g: Game): void { g.rt.tenant.phase = 'leave'; g.rt.tenant.notice = 0; }

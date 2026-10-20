@@ -3,6 +3,7 @@ import { data, FLOOR_Y, ROOM_H, WORLD_LEFT, WORLD_RIGHT, roomById } from '../dat
 import { leakLevel } from '../core/state';
 import type { Game } from '../core/game';
 import type { RoomDef, WeatherId } from '../core/types';
+import { drawProps } from './props';
 import { blob, fillPoly, fillRect, hatch, lerpColor, line, polyline, rect } from './sketch';
 
 export interface Env {
@@ -424,7 +425,7 @@ function drawBoiler(ctx: CanvasRenderingContext2D, env: Env, room: RoomDef): voi
 
   // состояние течи
   const leak = leakLevel(s);
-  const muffled = s.rooms['boiler'].muffledLeft > 0;
+  const muffled = s.rooms['boiler'].patched;
   if (muffled) {
     ctx.fillStyle = '#7d756a';
     blob(ctx, px, 114, 15, 11, 229, 1.6);
@@ -477,16 +478,6 @@ function drawBoiler(ctx: CanvasRenderingContext2D, env: Env, room: RoomDef): voi
   ctx.globalAlpha = hid ? 0.5 : 0.25;
   hatch(ctx, nx - 26, 116, 52, FLOOR_Y - 116, 5, 252, 0.4);
   ctx.globalAlpha = 1;
-
-  // ржавый засов на полу
-  if (!s.picked.includes('bolt_pickup')) {
-    const bxp = 520 + 70;
-    ctx.fillStyle = '#7a4a35'; fillRect(ctx, bxp - 14, FLOOR_Y - 5, 28, 5, 260, 0.5);
-    ctx.strokeStyle = '#a0643f'; ctx.lineWidth = 1.2; rect(ctx, bxp - 14, FLOOR_Y - 5, 28, 5, 260, 0.5);
-    const gl = 0.5 + 0.5 * Math.sin(t * 3);
-    ctx.fillStyle = `rgba(255,230,170,${0.3 + 0.5 * gl})`;
-    ctx.fillRect(bxp + 8, FLOOR_Y - 9 - gl * 2, 2, 2);
-  }
 }
 
 // ───────── Кладовая ─────────
@@ -550,7 +541,6 @@ function drawWalls(ctx: CanvasRenderingContext2D, env: Env): void {
   // стена с правой стороны подвала (x=1560) и левая (x=0)
   ctx.fillStyle = '#17110f';
   ctx.fillRect(-8, 0, 8, ROOM_H);
-  ctx.fillRect(1560, 0, 12, ROOM_H);
   ctx.strokeStyle = 'rgba(185,169,143,0.55)'; ctx.lineWidth = 2.4;
   line(ctx, 0, 0, 0, 76, 401, 1.2);
   line(ctx, 0, FLOOR_Y, 0, ROOM_H, 402, 1.2);
@@ -565,6 +555,32 @@ function drawWalls(ctx: CanvasRenderingContext2D, env: Env): void {
   line(ctx, wx - 7, 78, wx + 7, 78, 412, 0.8, 1);
   line(ctx, wx - 7, FLOOR_Y, wx - 7, ROOM_H, 413, 1);
   line(ctx, wx + 7, FLOOR_Y, wx + 7, ROOM_H, 414, 1);
+
+  // дверь в Мастерскую (замок в Кладовой, у перегородки)
+  {
+    const dx = 1560, wopen = s.rooms['workshop'].opened;
+    ctx.fillStyle = '#17110f';
+    ctx.fillRect(dx - 7, 0, 14, 78);
+    ctx.fillRect(dx - 7, FLOOR_Y, 14, ROOM_H - FLOOR_Y);
+    ctx.strokeStyle = 'rgba(185,169,143,0.55)'; ctx.lineWidth = 2.4;
+    line(ctx, dx - 7, 0, dx - 7, 78, 430, 1);
+    line(ctx, dx + 7, 0, dx + 7, 78, 431, 1);
+    line(ctx, dx - 7, 78, dx + 7, 78, 432, 0.8, 1);
+    if (!wopen) {
+      ctx.fillStyle = '#3a2c20';
+      fillRect(ctx, dx - 22, 78, 22, FLOOR_Y - 78, 433, 0.8);
+      ctx.strokeStyle = '#9a8870'; ctx.lineWidth = 2;
+      rect(ctx, dx - 22, 78, 22, FLOOR_Y - 78, 433, 1);
+      ctx.fillStyle = '#a58d5d'; fillRect(ctx, dx - 14, 148, 8, 10, 434, 0.3);
+      ctx.fillStyle = 'rgba(255,200,120,0.14)';
+      ctx.fillRect(dx - 22, FLOOR_Y - 3, 22, 3); // тёплая щель снизу
+    } else {
+      ctx.fillStyle = 'rgba(255,200,130,0.14)';
+      ctx.fillRect(dx - 7, 78, 14, FLOOR_Y - 78);
+      ctx.fillStyle = '#4a382a';
+      fillPoly(ctx, [[dx - 8, 80], [dx - 22, 86], [dx - 22, FLOOR_Y - 6], [dx - 8, FLOOR_Y]], 435, 0.6);
+    }
+  }
 
   // дверь в Кладовую
   const px = 1040;
@@ -603,7 +619,7 @@ function drawPlayer(ctx: CanvasRenderingContext2D, env: Env): void {
   const x = s.player.x;
   const walking = rt.dir !== 0;
   const bob = walking ? Math.sin(rt.walkPhase) * 1.6 : Math.sin(t * 2) * 0.5;
-  const crouch = rt.resting || rt.working;
+  const crouch = rt.resting;
   const h = crouch ? 26 : 36;
   const y = FLOOR_Y;
 
@@ -706,6 +722,7 @@ export function drawWorld(ctx: CanvasRenderingContext2D, env: Env): void {
     if (room.id === 'myroom') drawMyRoom(ctx, env, room);
     else if (room.id === 'boiler') drawBoiler(ctx, env, room);
     else if (room.id === 'pantry') drawPantry(ctx, env, room);
+    drawProps(ctx, env, room);
   }
   drawWalls(ctx, env);
   drawTenant(ctx, env);

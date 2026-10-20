@@ -78,6 +78,8 @@ export class Input {
       e.preventDefault();
       if (e.repeat) return;
       if (down) this.game.actionDown(); else this.game.actionUp();
+    } else if (down && k === 'KeyB') {
+      document.getElementById('btn-bag')?.click();
     } else if (down && k === 'KeyF') {
       document.getElementById('btn-furnish')?.click();
     }

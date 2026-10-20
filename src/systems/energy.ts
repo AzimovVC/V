@@ -31,9 +31,6 @@ export function updateEnergy(g: Game, dt: number): void {
     }
   }
 
-  // работа над корнем списывает огонёк по ходу
-  if (rt.working) delta -= balance.boiler.rootCost / balance.boiler.rootWorkTime;
-
   s.energy = Math.max(0, Math.min(e.max, s.energy + delta * dt));
   if (s.energy <= 0 && !rt.rollback) g.rollback('blackout');
 }

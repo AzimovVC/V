@@ -1,8 +1,7 @@
 {
   "tenants": [
     {
-      "id": "critic",
-      "name": "Критик",
+      "id": "knocker",
       "route": ["myroom", "boiler"],
       "stops": { "myroom": 250, "boiler": 270 },
       "lines": {

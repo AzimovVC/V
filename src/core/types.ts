@@ -12,6 +12,7 @@ export interface FixtureDef {
   radius: number;
   item?: string;
   label?: string;
+  needs?: string; // инструмент, без которого точка не открывается
 }
 
 export interface RoomDef {
@@ -29,11 +30,27 @@ export interface RoomDef {
 
 export interface TierDef { id: string; name: string; theme: string }
 
-export interface ItemDef { id: string; name: string; glyph: string; desc: string; effectText: string }
+export interface ItemDef { id: string; name: string; glyph: string; desc: string; effectText?: string }
+
+export interface NpcTalk {
+  id: string;
+  text: string;
+  when?: string[];
+  unless?: string[];
+  teach?: string[];
+  flag?: string;
+  tea?: boolean;
+  repeatable?: boolean;
+  taught?: string;
+}
+export interface NpcDef { id: string; name: string; room: string; talks: NpcTalk[]; idle: string[] }
+
+export type TileKind = 'straight' | 'elbow';
+export interface PipeTile { t: TileKind; r: number; broken?: boolean }
+export interface PipeDef { cols: number; rows: number; inRow: number; outRow: number; tiles: PipeTile[][] }
 
 export interface TenantDef {
   id: string;
-  name: string;
   route: string[];
   stops: Record<string, number>; // roomId → абсолютный x остановки
   lines: { steps: string[]; knock: string[]; stop: string[]; caught: string; repelled: string };
@@ -43,9 +60,8 @@ export type WeatherId = 'quiet' | 'drizzle' | 'storm';
 
 export interface RoomState {
   rooted: boolean;
-  muffledLeft: number; // с
+  patched: boolean; // заплатка стоит (держится, пока не заметят; долг остаётся)
   debt: number;
-  work: number; // 0..1 прогресс корня
   opened: boolean; // для запертых комнат
 }
 
@@ -60,7 +76,12 @@ export interface GameState {
   inventory: string[];
   equipped: string[];
   broken: string[];
-  picked: string[];
+  done: string[]; // id точек: найдено / разобрано / убрано
+  mats: Record<string, number>; // материалы
+  tools: string[]; // инструменты
+  recipes: string[]; // известные рецепты верстака
+  pipe: { rot: number[]; repl: boolean[] }; // головоломка трубы
+  scavN: number; // сколько раз рылись в куче
   windowCracks: number;
   weatherShock: number; // с до конца
   weather: number; // сглаженная тяжесть 0..3

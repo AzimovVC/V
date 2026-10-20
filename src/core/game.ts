@@ -14,7 +14,6 @@ import { startRollback, updateRollback, type Rollback } from '../systems/penalty
 export interface Runtime {
   dir: -1 | 0 | 1;
   resting: boolean;
-  working: boolean;
   holding: string | null; // id удерживаемого действия («breath»)
   breathHold: number;
   breathCd: number;
@@ -31,7 +30,7 @@ export interface Runtime {
   walkPhase: number;
 }
 
-export interface LightSource { x: number; y: number; r: number; kind: 'lamp' | 'furnace' | 'window' }
+export interface LightSource { x: number; y: number; r: number; kind: 'lamp' | 'furnace' | 'window' | 'hearth' }
 
 export class Game {
   readonly bus = new EventBus();
@@ -39,7 +38,7 @@ export class Game {
 
   constructor(public state: GameState, public ui: UI) {
     this.rt = {
-      dir: 0, resting: false, working: false, holding: null, breathHold: 0, breathCd: 0,
+      dir: 0, resting: false, holding: null, breathHold: 0, breathCd: 0,
       modal: false, roomId: roomAt(state.player.x).id, tenant: newTenantRT(this), rollback: null,
       action: null, thunderT: 8, flash: 0, elapsed: 0, saveT: 0, shown: {}, walkPhase: 0,
     };
@@ -101,7 +100,6 @@ export class Game {
     this.bus.emit('player:unhide', {});
   }
   stopRest(): void { if (this.rt.resting) { this.rt.resting = false; this.bus.emit('player:rest', { on: false }); } }
-  stopWork(): void { this.rt.working = false; }
 
   fixtureX(room: RoomDef, fx: FixtureDef): number { return room.x + fx.x; }
   lampX(): number { return roomById('myroom').x + 250; }
@@ -111,6 +109,7 @@ export class Game {
     out.push({ x: this.lampX(), y: 62, r: lampRadius(s), kind: 'lamp' });
     if (s.rooms['boiler'].rooted) out.push({ x: 520 + 300, y: 170, r: L.furnaceRadius, kind: 'furnace' });
     if (s.rooms['pantry'].opened) out.push({ x: 1040 + 370, y: 80, r: L.pantryWindowRadius, kind: 'window' });
+    if (s.rooms['workshop'].opened) out.push({ x: 1560 + 385, y: 170, r: s.flags['workshop_cleared'] ? L.hearthRadiusCleared : L.hearthRadius, kind: 'hearth' });
     return out;
   }
   isLit(x: number): boolean {

@@ -1,5 +1,6 @@
 import { balance } from '../config/balance';
 import { data } from '../data';
+import { canPay, pay } from '../core/state';
 import type { Game } from '../core/game';
 
 export function slotCount(roomId: string): number { return balance.furnish.slots[roomId] ?? 0; }
@@ -19,10 +20,10 @@ export function toggleEquip(g: Game, id: string): string | null {
 }
 
 export function repairItem(g: Game, id: string): string | null {
-  const s = g.state, cost = balance.items[id]?.repairCost ?? 0;
+  const s = g.state, cost = balance.items[id]?.repair ?? {};
   if (!s.broken.includes(id)) return null;
-  if (s.energy < cost) return 'Не хватает огонька. Сначала отдохни у лампы.';
-  s.energy -= cost;
+  if (!canPay(s, cost)) return 'Не хватает материалов.';
+  pay(s, cost);
   s.broken = s.broken.filter((x) => x !== id);
   g.bus.emit('item:repair', { id });
   g.save();

@@ -18,7 +18,7 @@ export class Renderer {
   private grain: CanvasPattern | null = null;
   private w = 0; private h = 0; private dpr = 1;
   private camX = 250;
-  private clear: Record<string, number> = { myroom: 0, boiler: 0, pantry: 0 };
+  private clear: Record<string, number> = { myroom: 0, boiler: 0, pantry: 0, workshop: 0 };
   private t = 0;
 
   constructor(private canvas: HTMLCanvasElement) {
@@ -59,9 +59,11 @@ export class Renderer {
   /** Целевая «расчищенность» комнат (плавно догоняется). */
   private clearTarget(g: Game, id: string): number {
     const s = g.state;
-    if (id === 'boiler') return s.rooms['boiler'].rooted ? 1 : 0;
-    if (id === 'pantry') return s.flags['pantry_box'] ? 1 : s.rooms['pantry'].opened ? 0.55 : 0;
-    return Math.min(1, (s.rooms['boiler'].rooted ? 0.5 : 0) + (s.flags['pantry_box'] ? 0.5 : 0));
+    const tidy = (r: string) => (s.flags['tidy_' + r] ? 1 : 0);
+    if (id === 'boiler') return (s.rooms['boiler'].rooted ? 0.7 : 0) + tidy('boiler') * 0.3;
+    if (id === 'pantry') return (s.rooms['pantry'].opened ? 0.35 : 0) + (s.flags['pantry_box'] ? 0.35 : 0) + tidy('pantry') * 0.3;
+    if (id === 'workshop') return (s.rooms['workshop'].opened ? 0.3 : 0) + (s.flags['workshop_cleared'] ? 0.45 : 0) + tidy('workshop') * 0.25;
+    return Math.min(1, (s.rooms['boiler'].rooted ? 0.35 : 0) + (s.flags['pantry_box'] ? 0.25 : 0) + (s.flags['workshop_cleared'] ? 0.2 : 0) + tidy('myroom') * 0.2);
   }
 
   draw(g: Game, dt: number): void {

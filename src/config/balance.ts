@@ -29,8 +29,11 @@ export const balance = {
   light: {
     lampRadius: 235, // радиус света лампы в комнате «Я»
     lampRadiusPerRoot: 45, // каждая расчищенная комната делает лампу теплее
+    lampRadiusPerTidy: 18, // …и каждая полностью прибранная
     furnaceRadius: 210, // свет печи Котельной после ремонта
     pantryWindowRadius: 150, // тихий свет окна Кладовой
+    hearthRadius: 250, // очаг Мастерской
+    hearthRadiusCleared: 310, // …после расчистки
     flameMin: 36, // собственный свет «Я» при пустом огоньке
     flameMax: 120, // …при полном
     darkness: 0.84, // 0..1 насколько тёмно вне света (только вид)
@@ -54,29 +57,66 @@ export const balance = {
     thunderMax: 22,
   },
 
-  // ───────── Котельная: «заглушить / выкорчевать» ─────────
+  // ───────── Труба: «заплатка / настоящий ремонт» (без таймеров) ─────────
   boiler: {
-    muffleCost: 8, // огонёк за тряпку
-    muffleCostPerDebt: 2, // каждая единица долга удорожает следующую тряпку
-    muffleDuration: 75, // с, пока тряпка держит
-    muffleDebt: 1, // долг за заглушку
-    rootCost: 30, // огонёк за корень (списывается по мере работы)
-    rootMinEnergy: 20, // меньше — не начать (сначала отдохни)
-    rootWorkTime: 9, // с стоять и разбираться (прогресс сохраняется, если прервали)
-    leakBase: 1, // уровень течи после ремонта-«ничего»
+    patchRags: 2, // тряпок за заплатку
+    patchRagsPerDebt: 1, // +тряпок за каждую единицу долга (чем больше «затыкал», тем дороже)
+    patchDebt: 1, // долг за заплатку (остаётся, пока не починишь по-настоящему)
+    leakBase: 1, // уровень течи без заплатки и без долга
     leakMax: 3,
     leakDrain: 0.6, // /с за уровень течи, пока стоишь у лужи
     leakPuddleRadius: 90,
-    leakTenantNoise: 0.25, // насколько каждый уровень течи учащает визиты Критика
+    leakTenantNoise: 0.25, // насколько каждый уровень течи учащает визиты гостей
   },
 
-  // ───────── Воспоминания (ключи) ─────────
+  // ───────── Воспоминания (ключи-подсказки) ─────────
   memory: {
     notebookCost: 4,
     boxCost: 5,
   },
 
-  // ───────── Враждебный жилец: Критик ─────────
+  // ───────── Материалы, находки, крафт, расчистка ─────────
+  // Находки: id точки (fixture) → что в ней лежит. Берётся один раз.
+  loot: {
+    drawer: { scrap: 2, rag: 2, board: 1 },
+    crate: { scrap: 2, pipepart: 1, rag: 1 }, // нужен лом
+    shelf: { rag: 2, scrap: 2, board: 1 },
+  } as Record<string, Record<string, number>>,
+  // Куча хлама: можно рыться снова и снова, каждый раз что-то одно — за огонёк
+  scavenge: {
+    cost: 4,
+    cycle: ['rag', 'scrap', 'scrap', 'board', 'rag', 'scrap'] as string[],
+  },
+  // Завалы: чем разбирать, сколько стоит огонька и что внутри
+  clear: {
+    barricade: { cost: 3, yield: { board: 3, scrap: 1 }, opens: 'pantry' },
+    debris_a: { cost: 3, yield: { board: 2, scrap: 1 } },
+    debris_b: { cost: 3, yield: { rag: 3, scrap: 1 } },
+    debris_c: { cost: 3, yield: { scrap: 3, pipepart: 1 } },
+  } as Record<string, { cost: number; yield: Record<string, number>; opens?: string }>,
+  // Рецепты верстака: что стоят и что дают (kind: tool — инструмент, item — мебель, mat — материал)
+  recipes: {
+    crowbar: { kind: 'tool', cost: { scrap: 1, board: 1 }, qty: 1 },
+    broom: { kind: 'tool', cost: { board: 1, rag: 1 }, qty: 1 },
+    wrench: { kind: 'tool', cost: { scrap: 2 }, qty: 1 },
+    pipepart: { kind: 'mat', cost: { scrap: 1, rag: 1 }, qty: 1 },
+    bolt: { kind: 'item', cost: { board: 2, scrap: 1 }, qty: 1 },
+    rug: { kind: 'item', cost: { rag: 4 }, qty: 1 },
+    stove: { kind: 'item', cost: { scrap: 4, pipepart: 1 }, qty: 1 },
+  } as Record<string, { kind: 'tool' | 'item' | 'mat'; cost: Record<string, number>; qty: number }>,
+  startRecipes: ['crowbar', 'wrench', 'broom', 'pipepart'] as string[],
+  // Уборка: пыль, беспорядок, перекошенное. Каждое дело — немного огонька; комната «прибрана», когда сделано всё.
+  tidy: {
+    dust: { cost: 1, tool: 'broom', yield: {} },
+    mess: { cost: 1.5, tool: '', yield: { scrap: 1 } },
+    fix: { cost: 1.5, tool: '', mats: { scrap: 1 }, yield: {} },
+  } as Record<string, { cost: number; tool: string; mats?: Record<string, number>; yield: Record<string, number> }>,
+  // Угощение Починщика и награда за расчистку его мастерской
+  mender: {
+    teaEnergy: 100, // огонёк после чая (до max)
+  },
+
+  // ───────── Враждебный жилец (безымянный): стук, шаги, обход ─────────
   tenant: {
     firstVisitDelay: 50, // с до первого визита
     minInterval: 70, // с между визитами (до множителей)
@@ -103,9 +143,10 @@ export const balance = {
     energyLossFrac: 0.4, // теряешь долю огонька
     energyFloor: 15, // …но не ниже
     windowCrackMax: 3,
-    windowRepairCost: 10,
+    windowRepair: { board: 1, rag: 1 } as Record<string, number>, // материалы на заделку окна
     restPerCrack: 0.15, // выбитое окно снижает отдых у лампы
-    breakItemOnCaught: true, // ломается случайный предмет (чинится за огонёк)
+    breakItemOnCaught: true, // ломается случайный предмет (чинится материалами)
+    tearsPatch: true, // заплатка срывается, если заметили
     fadeTime: 1.6,
   },
 
@@ -115,11 +156,11 @@ export const balance = {
   },
   // Эффекты предметов (имена/описания — в items.json)
   items: {
-    lamp: { fixed: true, repairCost: 0 },
-    chair: { restMult: 0.35, repairCost: 6 }, // +к отдыху
-    bolt: { blocksEntryOnce: true, extraDelayMult: 1.2, repairCost: 8 }, // дверь не поддаётся, но засов ломается
-    rug: { tenantIntervalMult: 1.25, repairCost: 5 }, // тише дом → реже гости
-    stove: { darkDrainMult: 0.75, restMult: 0.15, repairCost: 10 }, // тепло, которое носишь с собой
+    lamp: { fixed: true, repair: {} },
+    chair: { restMult: 0.35, repair: { board: 1 } }, // +к отдыху
+    bolt: { blocksEntryOnce: true, extraDelayMult: 1.2, repair: { board: 1, scrap: 1 } }, // дверь не поддаётся, но засов ломается
+    rug: { tenantIntervalMult: 1.25, repair: { rag: 2 } }, // тише дом → реже гости
+    stove: { darkDrainMult: 0.75, restMult: 0.15, repair: { scrap: 2 } }, // тепло, которое носишь с собой
   } as Record<string, ItemBalance>,
 
   // ───────── Прочее ─────────
@@ -133,7 +174,7 @@ export const balance = {
 
 export interface ItemBalance {
   fixed?: boolean;
-  repairCost: number;
+  repair: Record<string, number>; // материалы на починку
   restMult?: number;
   darkDrainMult?: number;
   tenantIntervalMult?: number;
